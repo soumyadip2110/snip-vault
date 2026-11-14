@@ -1,46 +1,42 @@
 import { User } from "../models/user.model";
+import ApiError from '../utils/ApiError.js';
+import ApiResponse from '../utils/ApiResponse.js';
+import asyncHandler from '../utils/asyncHandler.js';
 
-const registerUser = async (req, res) => {
-    try {
-        const { firstName, email, password } = req.body;
-        if (!firstName || !email || !password) {
-            return res.status(400).json({
-                success: false,
-                message: 'All fields are required!'
-            });
-        }
+const registerUser = asyncHandler(async (req, res) => {
+    const { firstName, email, password } = req.body;
+    const requiredFields = [firstName, email, password];
 
-        const existedUser = await User.findOne({ email });
-        if (existedUser) {
-            return res.status(409).json({
-                success: false,
-                message: 'User already exist!'
-            });
-        }
-
-        const newUser = await User.create({
-            firstName,
-            email,
-            password
-        });
-        newUser.save();
-        return res.status(201).json({
-            success: true,
-            message: 'New user registered!',
-            user: {
-                id: newUser._id,
-                firstName: newUser.firstName,
-                email: newUser.email
-            }
-        });
-    } catch (error) {
-        console.log('Error on registerUser controller: ', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Internal server error!'
-        });
+    if (requiredFields.some(
+        field => typeof field !== 'string' || !field.trim()
+    )) {
+        throw new ApiError(400, 'All fields are required!');
     }
-};
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const existedUser = await User.findOne({ email: normalizedEmail });
+    if (existedUser) {
+        throw new ApiError(409, 'User with this email already exists!');
+    }
+
+    const newUser = await User.create({
+        firstName: firstName.trim(),
+        email: normalizedEmail,
+        password
+    });
+
+    const createdUser = await User.findById(newUser?._id).select('-password -refreshToken');
+
+    if (!createdUser) {
+        throw new ApiError(500, 'Something went wrong while registering the user');
+    }
+
+    return res.status(201).json(
+        new ApiResponse(201, createdUser, 'User registered successfully')
+    );
+
+});
 
 const loginUser = async (req, res) => { };
 
