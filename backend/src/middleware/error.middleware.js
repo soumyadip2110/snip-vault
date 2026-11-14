@@ -42,7 +42,7 @@ const errorMiddleware = (err, req, res, next) => {
         );
     }
 
-    // 6. Log unexpected errors with sanitized stack information
+    // 6. Log unexpected errors
     console.error('UNEXPECTED ERROR:', {
         name: err.name || 'Unknown Error',
         method: req.method,
