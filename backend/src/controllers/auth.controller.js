@@ -1,3 +1,4 @@
+import jwt from 'jsonwebtoken';
 import { User } from "../models/user.model.js";
 import ApiError from '../utils/ApiError.js';
 import ApiResponse from '../utils/ApiResponse.js';
@@ -44,7 +45,8 @@ const registerUser = asyncHandler(async (req, res) => {
         password
     });
 
-    const createdUser = await User.findById(newUser?._id).select('-password -refreshToken');
+    const createdUser = await User.findById(newUser?._id)
+        .select('-password -refreshToken');
 
     if (!createdUser) {
         throw new ApiError(500, 'Something went wrong while registering the user');
@@ -76,7 +78,8 @@ const loginUser = asyncHandler(async (req, res) => {
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user);
 
-    const loggedInUser = await User.findById(user._id).select('-password -refreshToken');
+    const loggedInUser = await User.findById(user._id)
+        .select('-password -refreshToken');
 
     const cookieOptions = {
         httpOnly: true,
@@ -101,7 +104,7 @@ const loginUser = asyncHandler(async (req, res) => {
 })
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
-    const incomingRefreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
+    const incomingRefreshToken = req.cookies?.refreshToken;
 
     if (!incomingRefreshToken) {
         throw new ApiError(401, 'Unauthorized request');
