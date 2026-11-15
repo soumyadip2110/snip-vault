@@ -124,8 +124,20 @@ const updateSnippet = asyncHandler(async (req, res) => {
     );
 });
 
-// Delete a snippet
-const deleteSnippet = asyncHandler(async (req, res) => {});
+const deleteSnippet = asyncHandler(async (req, res) => {
+    const snippet = await Snippet.findOneAndDelete({
+        _id: req.params.snippetId,
+        owner: req.user._id
+    });
+
+    if (!snippet) {
+        throw new ApiError(404, 'Snippet not found');
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, {}, 'Snippet deleted successfully')
+    );
+});
 
 export {
     createSnippet,
