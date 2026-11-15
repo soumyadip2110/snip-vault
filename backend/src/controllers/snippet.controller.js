@@ -67,7 +67,62 @@ const getSnippetById = asyncHandler(async (req, res) => {
     );
 });
 
-const updateSnippet = asyncHandler(async (req, res) => {});
+const updateSnippet = asyncHandler(async (req, res) => {
+    const { title, description, code, language, tags, isPublic } = req.body;
+    const updates = {};
+
+    const stringFields = { title, description, code, language };
+
+    // Validate string fields
+    for (const [key, value] of Object.entries(stringFields)) {
+        if (value !== undefined) {
+            if (typeof value !== 'string') {
+                throw new ApiError(400, `Invalid ${key}`);
+            }
+
+            if (['title', 'code', 'language'].includes(key) && !value.trim()) {
+                throw new ApiError(400, `${key} cannot be empty`);
+            }
+
+            updates[key] = value;
+        }
+    }
+
+    // Validate tags
+    if (tags !== undefined) {
+        updates.tags = normalizeTags(tags);
+    }
+
+    // Validate visibility
+    if (isPublic !== undefined) {
+        if (typeof isPublic !== 'boolean') {
+            throw new ApiError(400, 'Visibility must be a boolean');
+        }
+
+        updates.isPublic = isPublic;
+    }
+
+    if (Object.keys(updates).length === 0) {
+        throw new ApiError(400, 'No valid fields provided for update');
+    }
+
+    const snippet = await Snippet.findOneAndUpdate(
+        {
+            _id: req.params.snippetId,
+            owner: req.user._id
+        },
+        { $set: updates },
+        { new: true, runValidators: true }
+    );
+
+    if (!snippet) {
+        throw new ApiError(404, 'Snippet not found');
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, snippet, 'Snippet updated successfully')
+    );
+});
 
 // Delete a snippet
 const deleteSnippet = asyncHandler(async (req, res) => {});
