@@ -14,7 +14,7 @@ const generateAccessAndRefreshTokens = async (user) => {
 
     return { accessToken, refreshToken };
 
-    // Let unexpected errors reach your existing error middleware, which can log them properly.
+    // Let unexpected errors reach the existing error middleware, which can log them properly.
 
     // } catch (error) {
     //     throw new ApiError(500, 'Something went wrong while generating access and refresh tokens')
@@ -100,4 +100,48 @@ const loginUser = asyncHandler(async (req, res) => {
 
 })
 
-export { registerUser, loginUser };
+const refreshAccessToken = asyncHandler(async (req, res) => {
+    const incomingRefreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
+
+    if (!incomingRefreshToken) {
+        throw new ApiError(401, 'Unauthorized request');
+    }
+
+    let decodedToken;
+    try {
+        decodedToken = jwt.verify(
+            incomingRefreshToken,
+            process.env.REFRESH_TOKEN_SECRET
+        );
+    } catch (error) {
+        throw new ApiError(401, 'Invalid or expired refresh token');
+    }
+
+    const user = await User.findById(decodedToken?._id);
+
+    if (!user || user.refreshToken !== incomingRefreshToken) {
+        throw new ApiError(401, 'Invalid or expired refresh token');
+    }
+
+    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user);
+
+    const cookieOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/'
+    };
+
+    return res
+        .status(200)
+        .cookie('refreshToken', refreshToken, cookieOptions)
+        .json(
+            new ApiResponse(
+                200,
+                { accessToken },
+                'Access token refreshed successfully'
+            )
+        );
+});
+
+export { registerUser, loginUser, refreshAccessToken };
