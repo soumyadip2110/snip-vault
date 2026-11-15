@@ -42,7 +42,15 @@ const createSnippet = asyncHandler(async (req, res) => {
     );
 });
 
-const getUserSnippets = asyncHandler(async (req, res) => {});
+const getUserSnippets = asyncHandler(async (req, res) => {
+    const snippets = await Snippet.find({
+        owner: req.user._id
+    }).sort({ createdAt: -1 });
+
+    return res.status(200).json(
+        new ApiResponse(200, snippets, 'Snippets fetched successfully')
+    );
+});
 
 const getSnippetById = asyncHandler(async (req, res) => {});
 
