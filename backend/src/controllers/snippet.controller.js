@@ -52,7 +52,20 @@ const getUserSnippets = asyncHandler(async (req, res) => {
     );
 });
 
-const getSnippetById = asyncHandler(async (req, res) => {});
+const getSnippetById = asyncHandler(async (req, res) => {
+    const snippet = await Snippet.findOne({
+        _id: req.params.snippetId,
+        owner: req.user._id
+    });
+
+    if (!snippet) {
+        throw new ApiError(404, 'Snippet not found');
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, snippet, 'Snippet fetched successfully')
+    );
+});
 
 const updateSnippet = asyncHandler(async (req, res) => {});
 
