@@ -9,9 +9,17 @@ const normalizeTags = (tags) => {
     }
 
     // The spread operator (...) takes the elements from the Set, and puts them into a new array as it's wraped in square brackets [].
-    return [...new Set(
-        tags.map(tag => tag.trim().toLowerCase()).filter(Boolean)
-    )];
+    const normalizedTags = [
+        ...new Set(tags.map(tag => tag.trim().toLowerCase()).filter(Boolean))
+    ];
+
+    if (normalizedTags.length > 10) {
+        throw new ApiError(400, 'Maximum 10 tags allowed');
+    }
+
+    if (normalizedTags.some(tag => tag.length > 20)) {
+        throw new ApiError(400, 'Each tag must be at most 20 characters');
+    }
 };
 
 const createSnippet = asyncHandler(async (req, res) => {
@@ -28,10 +36,10 @@ const createSnippet = asyncHandler(async (req, res) => {
     }
 
     const snippet = await Snippet.create({
-        title,
-        description,
+        title: title.trim(),
+        description: description.trim(),
         code,
-        language,
+        language: language.trim(),
         tags: normalizeTags(tags),
         isPublic,
         owner: req.user._id
@@ -84,7 +92,9 @@ const updateSnippet = asyncHandler(async (req, res) => {
                 throw new ApiError(400, `${key} cannot be empty`);
             }
 
-            updates[key] = value;
+            updates[key] = ['title', 'language', 'description'].includes(key)
+                ? value.trim()
+                : value;
         }
     }
 
