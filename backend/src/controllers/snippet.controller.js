@@ -20,6 +20,8 @@ const normalizeTags = (tags) => {
     if (normalizedTags.some(tag => tag.length > 20)) {
         throw new ApiError(400, 'Each tag must be at most 20 characters');
     }
+
+    return normalizedTags;
 };
 
 const createSnippet = asyncHandler(async (req, res) => {

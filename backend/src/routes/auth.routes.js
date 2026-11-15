@@ -4,6 +4,7 @@ import { verifyJWT } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
+// Base route: /api/auth
 // Public routes
 router.post('/register', registerUser);
 router.post('/login', loginUser);

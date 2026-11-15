@@ -2,6 +2,7 @@ import { Router } from "express";
 
 const router = Router();
 
+// Base route: /api
 router.get('/health', (req, res) => {
     res.status(200).json({
         success: true,

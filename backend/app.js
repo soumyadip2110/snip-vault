@@ -4,6 +4,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import healthRouter from './src/routes/healthRoutes.js';
 import authRouter from './src/routes/auth.routes.js';
+import snippetRouter from './src/routes/snippet.routes.js';
 
 const app = express();
 
@@ -18,7 +19,7 @@ app.use(cookieParser());
 // Register routes
 app.use('/api', healthRouter);
 app.use('/api/auth', authRouter);
-
+app.use('/api/snippets', snippetRouter);
 
 // Global error-handling middleware (must be registered after all routes)
 app.use(errorMiddleware);
