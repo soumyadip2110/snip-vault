@@ -147,4 +147,31 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         );
 });
 
-export { registerUser, loginUser, refreshAccessToken };
+const logoutUser = asyncHandler(async (req, res) => {
+    await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $unset: { refreshToken: 1 }
+        }
+    );
+
+    const cookieOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/'
+    };
+
+    return res
+        .status(200)
+        .clearCookie('refreshToken', cookieOptions)
+        .json(
+            new ApiResponse(
+                200,
+                {},
+                'User logged out successfully'
+            )
+        );
+});
+
+export { registerUser, loginUser, refreshAccessToken, logoutUser };
