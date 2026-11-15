@@ -1,3 +1,4 @@
+import { cookieOptions } from '../utils/cookieOptions.js';
 import jwt from 'jsonwebtoken';
 import { User } from "../models/user.model.js";
 import ApiError from '../utils/ApiError.js';
@@ -81,12 +82,6 @@ const loginUser = asyncHandler(async (req, res) => {
     const loggedInUser = await User.findById(user._id)
         .select('-password -refreshToken');
 
-    const cookieOptions = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
-    };
-
     return res
         .status(200)
         .cookie('refreshToken', refreshToken, cookieOptions)
@@ -128,13 +123,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user);
 
-    const cookieOptions = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/'
-    };
-
     return res
         .status(200)
         .cookie('refreshToken', refreshToken, cookieOptions)
@@ -154,13 +142,6 @@ const logoutUser = asyncHandler(async (req, res) => {
             $unset: { refreshToken: 1 }
         }
     );
-
-    const cookieOptions = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/'
-    };
 
     return res
         .status(200)
