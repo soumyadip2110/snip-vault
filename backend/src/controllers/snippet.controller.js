@@ -30,7 +30,7 @@ const createSnippet = asyncHandler(async (req, res) => {
     if (![title, code, language].every(
         value => typeof value === 'string' && value.trim()
     )) {
-        throw new ApiError(400, 'Title, code, and language are required');
+        throw new ApiError(400, 'Title, code, and language are not provided or invalid!');
     }
 
     if (typeof description !== 'string' || typeof isPublic !== 'boolean') {
@@ -124,7 +124,10 @@ const updateSnippet = asyncHandler(async (req, res) => {
             owner: req.user._id
         },
         { $set: updates },
-        { new: true, runValidators: true }
+        {
+            returnDocument: 'after',
+            runValidators: true
+        }
     );
 
     if (!snippet) {
