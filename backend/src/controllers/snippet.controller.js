@@ -3,6 +3,7 @@ import ApiError from '../utils/ApiError.js';
 import ApiResponse from '../utils/ApiResponse.js';
 import asyncHandler from '../utils/asyncHandler.js';
 
+// Helper functions
 const normalizeTags = (tags) => {
     if (!Array.isArray(tags) || tags.some(tag => typeof tag !== 'string')) {
         throw new ApiError(400, 'Tags must be an array of strings');
@@ -24,6 +25,11 @@ const normalizeTags = (tags) => {
     return normalizedTags;
 };
 
+const escapeRegex = (value) => {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
+// Controllers
 const createSnippet = asyncHandler(async (req, res) => {
     const { title, description = '', code, language, tags = [], isPublic = false } = req.body;
 
@@ -53,9 +59,40 @@ const createSnippet = asyncHandler(async (req, res) => {
 });
 
 const getUserSnippets = asyncHandler(async (req, res) => {
-    const snippets = await Snippet.find({
+    const { search, language, tag } = req.query;
+
+    if ([search, language, tag].some(
+        value => value !== undefined && typeof value !== 'string'
+    )) {
+        throw new ApiError(400, `Invalid query parameter`);
+    }
+
+    const filter = {
         owner: req.user._id
-    }).sort({ createdAt: -1 });
+    };
+
+    // Search by title or description (options: 'i' = case insensitive)
+    if (search?.trim()) {
+        const searchRegex = escapeRegex(search.trim());
+
+        filter.$or = [
+            { title: { $regex: searchRegex, $options: 'i' } },
+            { description: { $regex: searchRegex, $options: 'i' } }
+        ];
+    }
+
+    // Filter by programming language
+    if (language?.trim()) {
+        filter.language = language.trim().toLowerCase();
+    }
+
+    // Filter by tag
+    if (tag?.trim()) {
+        filter.tags = tag.trim().toLowerCase();
+    }
+
+    const snippets = await Snippet.find(filter)
+        .sort({ createdAt: -1 });
 
     return res.status(200).json(
         new ApiResponse(200, snippets, 'Snippets fetched successfully')
