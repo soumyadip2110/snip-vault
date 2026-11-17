@@ -1,12 +1,16 @@
 import api from './axios.js';
 
 export const registerUser = async (userData) => {
-    const response = await api.post('/auth/register', userData);
+    const response = await api.post('/auth/register', userData, {
+        requiresAuth: false
+    });
     return response.data;
 };
 
 export const loginUser = async (credentials) => {
-    const response = await api.post('/auth/login', credentials);
+    const response = await api.post('/auth/login', credentials, {
+        requiresAuth: false
+    });
     return response.data;
 };
 
