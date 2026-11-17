@@ -15,7 +15,10 @@ export const loginUser = async (credentials) => {
 };
 
 export const refreshAccessToken = async () => {
-    const response = await api.post('/auth/refresh-token');
+    const response = await api.post('/auth/refresh-token', null, {
+        requiresAuth: false
+    });
+
     return response.data;
 };
 

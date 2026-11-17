@@ -12,10 +12,15 @@ import {
 	clearCredentials
 } from './features/auth/authSlice.js';
 
+import { initializeAuth } from './features/auth/authThunks.js';
+
 configureApiInterceptors(store, {
 	setAccessToken,
 	clearCredentials
 });
+
+// Restore authentication before the app renders.
+store.dispatch(initializeAuth());
 
 createRoot(document.getElementById('root')).render(
 	<StrictMode>

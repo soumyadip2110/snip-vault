@@ -4,14 +4,16 @@ import { createSlice } from '@reduxjs/toolkit';
 import {
     registerUser,
     loginUser,
-    logoutUser
+    logoutUser,
+    initializeAuth
 } from './authThunks.js';
 
 const initialState = {
     user: null,
     accessToken: null,
     status: 'idle',
-    error: null
+    error: null,
+    isInitialized: false
 };
 
 const authSlice = createSlice({
@@ -36,6 +38,20 @@ const authSlice = createSlice({
 
     extraReducers: (builder) => {
         builder
+            // Authentication initialization
+            .addCase(initializeAuth.pending, (state) => {
+                state.isInitialized = false;
+            })
+            .addCase(initializeAuth.fulfilled, (state, action) => {
+                state.user = action.payload.user;
+                state.accessToken = action.payload.accessToken;
+                state.isInitialized = true;
+            })
+            .addCase(initializeAuth.rejected, (state) => {
+                state.user = null;
+                state.accessToken = null;
+                state.isInitialized = true;
+            })
             // Registration
             .addCase(registerUser.pending, (state) => {
                 state.status = 'loading';
