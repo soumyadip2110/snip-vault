@@ -10,10 +10,15 @@ function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        dispatch(loginUser({ email, password }));
+        const result = await dispatch(loginUser({ email, password }));
+
+        if (loginUser.fulfilled.match(result)) {
+            console.log('Logged-in user:', result.payload.data.user);
+            console.log('Access token received:', !!result.payload.data.accessToken);
+        }
     };
 
     return (
