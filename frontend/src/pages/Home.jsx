@@ -1,7 +1,7 @@
 import { useDispatch, useSelector } from 'react-redux';
-
 import { logoutUser } from '../features/auth/authThunks.js';
 import SnippetList from '../features/snippets/SnippetList.jsx';
+import CreateSnippet from '../features/snippets/CreateSnippet.jsx';
 
 function Home() {
     const dispatch = useDispatch();
@@ -42,6 +42,7 @@ function Home() {
             </header>
 
             <main className="mx-auto max-w-6xl px-6 py-8">
+                <CreateSnippet />
                 <SnippetList />
             </main>
         </div>
