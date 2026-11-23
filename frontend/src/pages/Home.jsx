@@ -13,22 +13,35 @@ function Home() {
     };
 
     return (
-        <div>
-            <header>
-                <h1>Welcome to SnipVault AI</h1>
+        <div className="min-h-screen bg-slate-50 text-slate-800">
+            <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4">
+                <div>
+                    <h1 className="text-xl font-semibold">
+                        SnipVault AI
+                    </h1>
 
-                <p>Your personal code snippet manager.</p>
+                    <p className="text-sm text-slate-500">
+                        Your personal code snippet manager.
+                    </p>
+                </div>
 
-                {user && <p>Hello, {user.firstName}!</p>}
+                <div className="flex items-center gap-4">
+                    {user && (
+                        <p className="text-sm">
+                            Hello, {user.firstName}!
+                        </p>
+                    )}
 
-                <button onClick={handleLogout}>
-                    Logout
-                </button>
+                    <button
+                        onClick={handleLogout}
+                        className="rounded-md bg-slate-800 px-4 py-2 text-sm text-white hover:bg-slate-700"
+                    >
+                        Logout
+                    </button>
+                </div>
             </header>
 
-            <hr />
-
-            <main>
+            <main className="mx-auto max-w-6xl px-6 py-8">
                 <SnippetList />
             </main>
         </div>
