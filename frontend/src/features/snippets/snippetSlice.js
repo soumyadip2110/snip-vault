@@ -14,7 +14,9 @@ const initialState = {
     status: 'idle',
     error: null,
     operationStatus: 'idle',
-    operationError: null
+    operationError: null,
+    selectedSnippetStatus: 'idle',
+    selectedSnippetError: null,
 };
 
 const snippetSlice = createSlice({
@@ -50,16 +52,16 @@ const snippetSlice = createSlice({
 
             // Fetch a single snippet
             .addCase(fetchSnippetById.pending, (state) => {
-                state.status = 'loading';
-                state.error = null;
+                state.selectedSnippetStatus = 'loading';
+                state.selectedSnippetError = null;
             })
             .addCase(fetchSnippetById.fulfilled, (state, action) => {
-                state.status = 'succeeded';
+                state.selectedSnippetStatus = 'succeeded';
                 state.selectedSnippet = action.payload.data;
             })
             .addCase(fetchSnippetById.rejected, (state, action) => {
-                state.status = 'failed';
-                state.error = action.payload;
+                state.selectedSnippetStatus = 'failed';
+                state.selectedSnippetError = action.payload;
             })
 
             // Create a snippet
