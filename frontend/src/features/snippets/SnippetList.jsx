@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-
+import { Link } from 'react-router-dom';
 import { fetchSnippets } from './snippetThunks.js';
 
 function SnippetList() {
@@ -48,9 +48,13 @@ function SnippetList() {
                             className="min-w-0 rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
                         >
                             <h3 className="mb-2 text-lg font-semibold">
-                                {snippet.title}
+                                <Link
+                                    to={`/snippets/${snippet._id}`}
+                                    className="text-blue-600 hover:underline"
+                                >
+                                    {snippet.title}
+                                </Link>
                             </h3>
-
                             <p className="mb-3 text-sm text-slate-600">
                                 {snippet.description || 'No description provided.'}
                             </p>

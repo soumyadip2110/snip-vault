@@ -1,11 +1,11 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 
 import { useSelector } from 'react-redux';
-
 import App from './App.jsx';
 import Home from './pages/Home.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
+import SnippetDetails from './features/snippets/SnippetDetails.jsx';
 
 // Protect pages that require authentication.
 function ProtectedRoute() {
@@ -44,6 +44,10 @@ const router = createBrowserRouter([
                     {
                         index: true,
                         element: <Home />
+                    },
+                    {
+                        path: 'snippets/:snippetId',
+                        element: <SnippetDetails />
                     }
                 ]
             },
