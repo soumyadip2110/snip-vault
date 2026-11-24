@@ -12,6 +12,11 @@ const snippetSchema = Schema(
             trim: true,
             default: ''
         },
+        notes: {
+            type: String,
+            trim: true,
+            default: ''
+        },
         code: {
             type: String,
             required: true

@@ -31,7 +31,15 @@ const escapeRegex = (value) => {
 
 // Controllers
 const createSnippet = asyncHandler(async (req, res) => {
-    const { title, description = '', code, language, tags = [], isPublic = false } = req.body;
+    const {
+        title,
+        description = '',
+        notes = '',
+        code,
+        language,
+        tags = [],
+        isPublic = false
+    } = req.body;
 
     if (![title, code, language].every(
         value => typeof value === 'string' && value.trim()
@@ -39,13 +47,18 @@ const createSnippet = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Title, code, and language are not provided or invalid!');
     }
 
-    if (typeof description !== 'string' || typeof isPublic !== 'boolean') {
-        throw new ApiError(400, 'Invalid description or visibility value');
+    if (
+        typeof description !== 'string' ||
+        typeof notes !== 'string' ||
+        typeof isPublic !== 'boolean'
+    ) {
+        throw new ApiError(400, 'Invalid description, notes, or visibility value');
     }
 
     const snippet = await Snippet.create({
         title: title.trim(),
         description: description.trim(),
+        notes: notes.trim(),
         code,
         language: language.trim(),
         tags: normalizeTags(tags),
@@ -115,10 +128,10 @@ const getSnippetById = asyncHandler(async (req, res) => {
 });
 
 const updateSnippet = asyncHandler(async (req, res) => {
-    const { title, description, code, language, tags, isPublic } = req.body;
+    const { title, description, notes, code, language, tags, isPublic } = req.body;
     const updates = {};
 
-    const stringFields = { title, description, code, language };
+    const stringFields = { title, description, notes, code, language };
 
     // Validate string fields
     for (const [key, value] of Object.entries(stringFields)) {
@@ -131,7 +144,7 @@ const updateSnippet = asyncHandler(async (req, res) => {
                 throw new ApiError(400, `${key} cannot be empty`);
             }
 
-            updates[key] = ['title', 'language', 'description'].includes(key)
+            updates[key] = ['title', 'language', 'description', 'notes'].includes(key)
                 ? value.trim()
                 : value;
         }
