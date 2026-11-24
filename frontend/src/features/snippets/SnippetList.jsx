@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { fetchSnippets } from './snippetThunks.js';
+import CodeEditor from './components/CodeEditor.jsx';
 
 function SnippetList() {
     const dispatch = useDispatch();
@@ -30,7 +31,7 @@ function SnippetList() {
 
         return () => clearTimeout(debounceTimer.current);
     }, [dispatch, search, language, tag]);
-    
+
     if (status === 'loading') {
         return (
             <p className="py-8 text-center text-slate-500">
@@ -131,9 +132,13 @@ function SnippetList() {
                                 </div>
                             )}
 
-                            <pre className="overflow-x-auto rounded-md bg-slate-900 p-4 text-sm text-slate-100">
-                                <code>{snippet.code}</code>
-                            </pre>
+                            <div className="mb-4">
+                                <CodeEditor
+                                    value={snippet.code}
+                                    language={snippet.language}
+                                    readOnly={true}
+                                />
+                            </div>
                         </article>
                     ))}
                 </div>
