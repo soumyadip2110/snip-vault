@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createSnippetThunk } from './snippetThunks.js';
+import CodeEditor from './components/CodeEditor.jsx';
 
 function CreateSnippet() {
     const dispatch = useDispatch();
@@ -95,18 +96,19 @@ function CreateSnippet() {
                 </div>
 
                 <div>
-                    <label htmlFor="code" className="mb-1 block text-sm font-medium">
+                    <label className="mb-1 block text-sm font-medium">
                         Code
                     </label>
 
-                    <textarea
-                        id="code"
-                        name="code"
+                    <CodeEditor
                         value={formData.code}
-                        onChange={handleChange}
-                        required
-                        rows={8}
-                        className="w-full rounded-md border border-slate-300 bg-slate-900 px-3 py-2 font-mono text-sm text-white outline-none focus:border-blue-500"
+                        onChange={(code) =>
+                            setFormData((previousData) => ({
+                                ...previousData,
+                                code,
+                            }))
+                        }
+                        language={formData.language}
                     />
                 </div>
 

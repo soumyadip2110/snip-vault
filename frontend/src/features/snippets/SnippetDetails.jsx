@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { deleteSnippetThunk, fetchSnippetById, updateSnippetThunk } from './snippetThunks.js';
 import { clearSelectedSnippet } from './snippetSlice.js';
+import CodeEditor from './components/CodeEditor.jsx';
 
 function SnippetDetails() {
     const { snippetId } = useParams();
@@ -116,7 +117,9 @@ function SnippetDetails() {
                             )}
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium">Title</label>
+                                <label className="mb-1 block text-sm font-medium">
+                                    Title
+                                </label>
                                 <input
                                     type="text"
                                     value={formData.title}
@@ -128,7 +131,9 @@ function SnippetDetails() {
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium">Description</label>
+                                <label className="mb-1 block text-sm font-medium">
+                                    Description
+                                </label>
                                 <textarea
                                     value={formData.description}
                                     onChange={(e) =>
@@ -139,19 +144,26 @@ function SnippetDetails() {
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium">Code</label>
-                                <textarea
+                                <label className="mb-1 block text-sm font-medium">
+                                    Code
+                                </label>
+
+                                <CodeEditor
                                     value={formData.code}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, code: e.target.value })
+                                    onChange={(code) =>
+                                        setFormData((previousData) => ({
+                                            ...previousData,
+                                            code,
+                                        }))
                                     }
-                                    rows={10}
-                                    className="w-full rounded-md border p-2 font-mono"
+                                    language={formData.language}
                                 />
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium">Language</label>
+                                <label className="mb-1 block text-sm font-medium">
+                                    Language
+                                </label>
                                 <input
                                     type="text"
                                     value={formData.language}
@@ -237,9 +249,13 @@ function SnippetDetails() {
                                 </div>
                             )}
 
-                            <pre className="overflow-x-auto rounded-md bg-slate-900 p-4 text-sm text-slate-100">
-                                <code>{selectedSnippet.code}</code>
-                            </pre>
+                            <div className="mb-5">
+                                <CodeEditor
+                                    value={selectedSnippet.code}
+                                    language={selectedSnippet.language}
+                                    readOnly={true}
+                                />
+                            </div>
                         </>
                     )}
                 </article>
