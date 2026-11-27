@@ -5,6 +5,7 @@ import { deleteSnippetThunk, fetchSnippetById, updateSnippetThunk } from './snip
 import { clearSelectedSnippet } from './snippetSlice.js';
 import CodeEditor from './components/CodeEditor.jsx';
 import MarkdownField from './components/MarkdownField.jsx';
+import SnippetForm from './components/SnippetForm.jsx';
 
 function SnippetDetails() {
     const { snippetId } = useParams();
@@ -43,31 +44,7 @@ function SnippetDetails() {
         setIsEditing(true);
     };
 
-    const handleFormKeyDown = (event) => {
-        if (event.key !== 'Enter') return;
-
-        // Ctrl + Enter on Windows/Linux, Cmd + Enter on Mac.
-        if (event.ctrlKey || event.metaKey) {
-            event.preventDefault();
-            event.currentTarget.requestSubmit();
-            return;
-        }
-
-        // Prevent accidental submission from single-line inputs.
-        if (event.target.tagName === 'INPUT') {
-            event.preventDefault();
-        }
-    };
-
-    const handleSave = async () => {
-        const snippetData = {
-            ...formData,
-            tags: formData.tags
-                .split(',')
-                .map((tag) => tag.trim())
-                .filter(Boolean),
-        };
-
+    const handleSave = async (snippetData) => {
         try {
             await dispatch(
                 updateSnippetThunk({
@@ -77,8 +54,8 @@ function SnippetDetails() {
             ).unwrap();
 
             setIsEditing(false);
-        } catch (error) {
-            // Redux will store the update error.
+        } catch {
+            // The error is already stored in Redux.
         }
     };
 
@@ -126,127 +103,15 @@ function SnippetDetails() {
             {selectedSnippetStatus === 'succeeded' && selectedSnippet && (
                 <article className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
                     {isEditing ? (
-                        <form
-                            onSubmit={(event) => {
-                                event.preventDefault();
-                                handleSave();
-                            }}
-                            onKeyDown={handleFormKeyDown}
-                            className="space-y-4"
-                        >
-                            <h1 className="text-2xl font-bold">Edit Snippet</h1>
-
-                            {operationError && (
-                                <p className="rounded-md bg-red-50 p-3 text-sm text-red-700">
-                                    {operationError}
-                                </p>
-                            )}
-
-                            <div>
-                                <label className="mb-1 block text-sm font-medium">
-                                    Title
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.title}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, title: e.target.value })
-                                    }
-                                    className="w-full rounded-md border p-2"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="mb-1 block text-sm font-medium">
-                                    Description
-                                </label>
-                                <textarea
-                                    value={formData.description}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, description: e.target.value })
-                                    }
-                                    className="w-full rounded-md border p-2"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="mb-1 block text-sm font-medium">
-                                    Notes (Markdown supported)
-                                </label>
-
-                                <MarkdownField
-                                    value={formData.notes}
-                                    onChange={(notes) =>
-                                        setFormData((previousData) => ({
-                                            ...previousData,
-                                            notes,
-                                        }))
-                                    }
-                                />
-                            </div>
-
-                            <div>
-                                <label className="mb-1 block text-sm font-medium">
-                                    Code
-                                </label>
-
-                                <CodeEditor
-                                    value={formData.code}
-                                    onChange={(code) =>
-                                        setFormData((previousData) => ({
-                                            ...previousData,
-                                            code,
-                                        }))
-                                    }
-                                    language={formData.language}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="mb-1 block text-sm font-medium">
-                                    Language
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.language}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, language: e.target.value })
-                                    }
-                                    className="w-full rounded-md border p-2"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="mb-1 block text-sm font-medium">
-                                    Tags (comma-separated)
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.tags}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, tags: e.target.value })
-                                    }
-                                    className="w-full rounded-md border p-2"
-                                />
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={() => setIsEditing(false)}
-                                disabled={operationStatus === 'loading'}
-                                className="rounded-md border px-4 py-2 text-sm hover:bg-slate-50 disabled:opacity-50"
-                            >
-                                Cancel
-                            </button>
-
-                            <button
-                                type="submit"
-                                disabled={operationStatus === 'loading'}
-                                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                {operationStatus === 'loading' ? 'Saving...' : 'Save Changes'}
-                            </button>
-                        </form>
+                        <SnippetForm
+                            mode="edit"
+                            formData={formData}
+                            setFormData={setFormData}
+                            onSubmit={handleSave}
+                            onCancel={() => setIsEditing(false)}
+                            isSubmitting={operationStatus === 'loading'}
+                            operationError={operationError}
+                        />
                     ) : (
                         <>
                             <h1 className="mb-3 text-2xl font-bold">
