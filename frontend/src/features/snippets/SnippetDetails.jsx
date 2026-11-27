@@ -23,6 +23,7 @@ function SnippetDetails() {
     const [formData, setFormData] = useState({
         title: '',
         description: '',
+        notes: '',
         code: '',
         language: '',
         tags: '',
@@ -32,6 +33,7 @@ function SnippetDetails() {
         setFormData({
             title: selectedSnippet.title,
             description: selectedSnippet.description || '',
+            notes: selectedSnippet.notes || '',
             code: selectedSnippet.code,
             language: selectedSnippet.language,
             tags: selectedSnippet.tags?.join(', ') || '',
@@ -145,6 +147,22 @@ function SnippetDetails() {
 
                             <div>
                                 <label className="mb-1 block text-sm font-medium">
+                                    Notes (Markdown supported)
+                                </label>
+
+                                <textarea
+                                    value={formData.notes}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, notes: e.target.value })
+                                    }
+                                    rows={6}
+                                    placeholder="Write explanations, examples, or additional notes..."
+                                    className="w-full rounded-md border p-2"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="mb-1 block text-sm font-medium">
                                     Code
                                 </label>
 
@@ -231,6 +249,22 @@ function SnippetDetails() {
                             <p className="mb-4 text-slate-600">
                                 {selectedSnippet.description || 'No description provided.'}
                             </p>
+
+                            <div className="mb-5">
+                                <h2 className="mb-2 text-lg font-semibold">
+                                    Notes
+                                </h2>
+
+                                {selectedSnippet.notes?.trim() ? (
+                                    <div className="whitespace-pre-wrap rounded-md border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                                        {selectedSnippet.notes}
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-slate-500">
+                                        No notes added.
+                                    </p>
+                                )}
+                            </div>
 
                             <p className="mb-4 text-sm text-slate-500">
                                 <strong>Language:</strong> {selectedSnippet.language}

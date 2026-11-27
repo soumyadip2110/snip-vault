@@ -13,6 +13,7 @@ function CreateSnippet() {
     const [formData, setFormData] = useState({
         title: '',
         description: '',
+        notes: '',
         code: '',
         language: '',
         tags: ''
@@ -44,6 +45,7 @@ function CreateSnippet() {
             setFormData({
                 title: '',
                 description: '',
+                notes: '',
                 code: '',
                 language: '',
                 tags: ''
@@ -91,6 +93,22 @@ function CreateSnippet() {
                         onChange={handleChange}
                         rows={2}
                         maxLength={500}
+                        className="w-full rounded-md border border-slate-300 px-3 py-2 outline-none focus:border-blue-500"
+                    />
+                </div>
+
+                <div>
+                    <label htmlFor="notes" className="mb-1 block text-sm font-medium">
+                        Notes (Markdown supported)
+                    </label>
+
+                    <textarea
+                        id="notes"
+                        name="notes"
+                        value={formData.notes}
+                        onChange={handleChange}
+                        rows={5}
+                        placeholder="Write explanations, examples, or additional notes..."
                         className="w-full rounded-md border border-slate-300 px-3 py-2 outline-none focus:border-blue-500"
                     />
                 </div>
