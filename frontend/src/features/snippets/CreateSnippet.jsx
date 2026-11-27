@@ -29,6 +29,22 @@ function CreateSnippet() {
         }));
     };
 
+    const handleFormKeyDown = (event) => {
+        if (event.key !== 'Enter') return;
+
+        // Ctrl + Enter on Windows/Linux, Cmd + Enter on Mac.
+        if (event.ctrlKey || event.metaKey) {
+            event.preventDefault();
+            event.currentTarget.requestSubmit();
+            return;
+        }
+
+        // Prevent accidental submission from single-line inputs.
+        if (event.target.tagName === 'INPUT') {
+            event.preventDefault();
+        }
+    };
+
     const handleSubmit = async (event) => {
         event.preventDefault();
 
@@ -64,7 +80,11 @@ function CreateSnippet() {
                 Create a Snippet
             </h2>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form
+                onSubmit={handleSubmit}
+                onKeyDown={handleFormKeyDown}
+                className="space-y-4"
+            >
                 <div>
                     <label htmlFor="title" className="mb-1 block text-sm font-medium">
                         Title

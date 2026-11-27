@@ -8,6 +8,8 @@ import { css } from '@codemirror/lang-css';
 import { json } from '@codemirror/lang-json';
 import { cpp } from '@codemirror/lang-cpp';
 import { oneDark } from '@codemirror/theme-one-dark';
+import { indentWithTab } from '@codemirror/commands';
+import { keymap } from '@codemirror/view';
 
 const getLanguageExtension = (language) => {
     const normalizedLanguage = language?.trim().toLowerCase();
@@ -72,6 +74,7 @@ function CodeEditor({
             doc: valueRef.current,
             extensions: [
                 basicSetup,
+                keymap.of([indentWithTab]),
                 oneDark,
                 EditorView.lineWrapping,
 

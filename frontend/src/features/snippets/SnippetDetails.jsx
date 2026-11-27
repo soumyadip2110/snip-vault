@@ -43,6 +43,22 @@ function SnippetDetails() {
         setIsEditing(true);
     };
 
+    const handleFormKeyDown = (event) => {
+        if (event.key !== 'Enter') return;
+
+        // Ctrl + Enter on Windows/Linux, Cmd + Enter on Mac.
+        if (event.ctrlKey || event.metaKey) {
+            event.preventDefault();
+            event.currentTarget.requestSubmit();
+            return;
+        }
+
+        // Prevent accidental submission from single-line inputs.
+        if (event.target.tagName === 'INPUT') {
+            event.preventDefault();
+        }
+    };
+
     const handleSave = async () => {
         const snippetData = {
             ...formData,
@@ -110,7 +126,14 @@ function SnippetDetails() {
             {selectedSnippetStatus === 'succeeded' && selectedSnippet && (
                 <article className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
                     {isEditing ? (
-                        <div className="space-y-4">
+                        <form
+                            onSubmit={(event) => {
+                                event.preventDefault();
+                                handleSave();
+                            }}
+                            onKeyDown={handleFormKeyDown}
+                            className="space-y-4"
+                        >
                             <h1 className="text-2xl font-bold">Edit Snippet</h1>
 
                             {operationError && (
@@ -217,14 +240,13 @@ function SnippetDetails() {
                             </button>
 
                             <button
-                                type="button"
-                                onClick={handleSave}
+                                type="submit"
                                 disabled={operationStatus === 'loading'}
                                 className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {operationStatus === 'loading' ? 'Saving...' : 'Save Changes'}
                             </button>
-                        </div>
+                        </form>
                     ) : (
                         <>
                             <h1 className="mb-3 text-2xl font-bold">
