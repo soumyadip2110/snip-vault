@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import CodeEditor from './CodeEditor.jsx';
 import MarkdownField from './MarkdownField.jsx';
 import { validateSnippet } from '../../../utils/snippetValidation.js';
@@ -13,21 +13,52 @@ function SnippetForm({
     mode = 'create',
 }) {
     const [validationErrors, setValidationErrors] = useState({});
-
+    const [hasSubmitted, setHasSubmitted] = useState(false);
+    const formRef = useRef(null);
     const isEditMode = mode === 'edit';
 
+    useEffect(() => {
+        if (
+            !formData.title &&
+            !formData.description &&
+            !formData.notes &&
+            !formData.code &&
+            !formData.language &&
+            !formData.tags
+        ) {
+            setValidationErrors({});
+            setHasSubmitted(false);
+        }
+    }, [formData]);
+
     const handleChange = (name, value) => {
+        const updatedData = {
+            ...formData,
+            [name]: value,
+        };
+
         setFormData((previousData) => ({
             ...previousData,
             [name]: value,
         }));
+
+        if (hasSubmitted) {
+            const errors = validateSnippet(updatedData);
+
+            setValidationErrors((previousErrors) => ({
+                ...previousErrors,
+                [name]: errors[name],
+            }));
+        }
     };
 
     const handleFormKeyDown = (event) => {
         if (event.key !== 'Enter') return;
 
-        // Ctrl + Enter on Windows/Linux, Cmd + Enter on Mac.
         if (event.ctrlKey || event.metaKey) {
+            // CodeMirror handles this shortcut internally.
+            if (event.target.closest('.cm-editor')) return;
+
             event.preventDefault();
             event.currentTarget.requestSubmit();
             return;
@@ -42,12 +73,16 @@ function SnippetForm({
     const handleFormSubmit = (event) => {
         event.preventDefault();
 
+        setHasSubmitted(true);
+
         const errors = validateSnippet(formData);
         setValidationErrors(errors);
 
         if (Object.keys(errors).length > 0) return;
 
-        // Normalize tags before passing the data to the parent.
+        // Clear old validation errors after successful validation.
+        setValidationErrors({});
+
         const snippetData = {
             ...formData,
             title: formData.title.trim(),
@@ -69,6 +104,7 @@ function SnippetForm({
 
     return (
         <form
+            ref={formRef}
             onSubmit={handleFormSubmit}
             onKeyDown={handleFormKeyDown}
             className="space-y-4"
@@ -141,6 +177,7 @@ function SnippetForm({
                     value={formData.code}
                     onChange={(code) => handleChange('code', code)}
                     language={formData.language}
+                    onSubmitShortcut={() => formRef.current?.requestSubmit()}
                 />
 
                 {validationErrors.code && (

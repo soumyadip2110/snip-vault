@@ -50,6 +50,7 @@ function CodeEditor({
     onChange,
     language = '',
     readOnly = false,
+    onSubmitShortcut,
 }) {
     const editorContainerRef = useRef(null);
     const editorViewRef = useRef(null);
@@ -61,12 +62,14 @@ function CodeEditor({
     const onChangeRef = useRef(onChange);
     const languageRef = useRef(language);
     const readOnlyRef = useRef(readOnly);
+    const onSubmitShortcutRef = useRef(onSubmitShortcut);
 
     // Keep the latest props available to the editor.
     valueRef.current = value;
     onChangeRef.current = onChange;
     languageRef.current = language;
     readOnlyRef.current = readOnly;
+    onSubmitShortcutRef.current = onSubmitShortcut;
 
     // Create and destroy the editor.
     useEffect(() => {
@@ -74,7 +77,18 @@ function CodeEditor({
             doc: valueRef.current,
             extensions: [
                 basicSetup,
-                keymap.of([indentWithTab]),
+                keymap.of([
+                    {
+                        key: 'Mod-Enter',
+                        run: () => {
+                            if (!onSubmitShortcutRef.current) return false;
+
+                            onSubmitShortcutRef.current();
+                            return true;
+                        },
+                    },
+                    indentWithTab,
+                ]),
                 oneDark,
                 EditorView.lineWrapping,
 

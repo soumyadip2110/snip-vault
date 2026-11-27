@@ -25,6 +25,25 @@ const normalizeTags = (tags) => {
     return normalizedTags;
 };
 
+const validateFieldLengths = ({ title, description, language }) => {
+    const limits = {
+        title: 100,
+        description: 500,
+        language: 50,
+    };
+
+    for (const [field, maxLength] of Object.entries(limits)) {
+        const value = { title, description, language }[field];
+
+        if (value !== undefined && value.length > maxLength) {
+            throw new ApiError(
+                400,
+                `${field.charAt(0).toUpperCase() + field.slice(1)} must not exceed ${maxLength} characters.`
+            );
+        }
+    }
+};
+
 const escapeRegex = (value) => {
     return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 };
@@ -54,6 +73,8 @@ const createSnippet = asyncHandler(async (req, res) => {
     ) {
         throw new ApiError(400, 'Invalid description, notes, or visibility value');
     }
+
+    validateFieldLengths({ title, description, language });
 
     const snippet = await Snippet.create({
         title: title.trim(),
@@ -149,6 +170,8 @@ const updateSnippet = asyncHandler(async (req, res) => {
                 : value;
         }
     }
+
+    validateFieldLengths({ title, description, language });
 
     // Validate tags
     if (tags !== undefined) {

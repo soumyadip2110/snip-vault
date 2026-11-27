@@ -5,12 +5,14 @@ const snippetSchema = Schema(
         title: {
             type: String,
             required: true,
-            trim: true
+            trim: true,
+            maxlength: 100,
         },
         description: {
             type: String,
             trim: true,
-            default: ''
+            default: '',
+            maxlength: 500,
         },
         notes: {
             type: String,
@@ -25,7 +27,8 @@ const snippetSchema = Schema(
             type: String,
             required: true,
             lowercase: true,
-            trim: true
+            trim: true,
+            maxlength: 50,
         },
         tags: {
             type: [String],
