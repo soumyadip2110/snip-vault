@@ -24,8 +24,10 @@
     "codemirror": "^6.0.2",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "react-markdown": "^10.1.0",
     "react-redux": "^9.3.1",
     "react-router-dom": "^7.18.6",
+    "remark-gfm": "^4.0.1",
     "tailwindcss": "^4.3.5"
   },
   "devDependencies": {

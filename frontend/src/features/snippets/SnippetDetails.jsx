@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { deleteSnippetThunk, fetchSnippetById, updateSnippetThunk } from './snippetThunks.js';
 import { clearSelectedSnippet } from './snippetSlice.js';
 import CodeEditor from './components/CodeEditor.jsx';
+import MarkdownField from './components/MarkdownField.jsx';
 
 function SnippetDetails() {
     const { snippetId } = useParams();
@@ -150,14 +151,14 @@ function SnippetDetails() {
                                     Notes (Markdown supported)
                                 </label>
 
-                                <textarea
+                                <MarkdownField
                                     value={formData.notes}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, notes: e.target.value })
+                                    onChange={(notes) =>
+                                        setFormData((previousData) => ({
+                                            ...previousData,
+                                            notes,
+                                        }))
                                     }
-                                    rows={6}
-                                    placeholder="Write explanations, examples, or additional notes..."
-                                    className="w-full rounded-md border p-2"
                                 />
                             </div>
 
@@ -256,9 +257,10 @@ function SnippetDetails() {
                                 </h2>
 
                                 {selectedSnippet.notes?.trim() ? (
-                                    <div className="whitespace-pre-wrap rounded-md border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-                                        {selectedSnippet.notes}
-                                    </div>
+                                    <MarkdownField
+                                        value={selectedSnippet.notes}
+                                        readOnly={true}
+                                    />
                                 ) : (
                                     <p className="text-sm text-slate-500">
                                         No notes added.

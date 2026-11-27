@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createSnippetThunk } from './snippetThunks.js';
 import CodeEditor from './components/CodeEditor.jsx';
+import MarkdownField from './components/MarkdownField.jsx';
 
 function CreateSnippet() {
     const dispatch = useDispatch();
@@ -98,18 +99,18 @@ function CreateSnippet() {
                 </div>
 
                 <div>
-                    <label htmlFor="notes" className="mb-1 block text-sm font-medium">
+                    <label className="mb-1 block text-sm font-medium">
                         Notes (Markdown supported)
                     </label>
 
-                    <textarea
-                        id="notes"
-                        name="notes"
+                    <MarkdownField
                         value={formData.notes}
-                        onChange={handleChange}
-                        rows={5}
-                        placeholder="Write explanations, examples, or additional notes..."
-                        className="w-full rounded-md border border-slate-300 px-3 py-2 outline-none focus:border-blue-500"
+                        onChange={(notes) =>
+                            setFormData((previousData) => ({
+                                ...previousData,
+                                notes,
+                            }))
+                        }
                     />
                 </div>
 
