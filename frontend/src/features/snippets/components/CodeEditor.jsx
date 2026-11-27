@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { basicSetup, EditorView } from 'codemirror';
-import { EditorState, Compartment } from '@codemirror/state';
+import { EditorState, Compartment, Prec } from '@codemirror/state';
 import { javascript } from '@codemirror/lang-javascript';
 import { python } from '@codemirror/lang-python';
 import { html } from '@codemirror/lang-html';
@@ -77,18 +77,21 @@ function CodeEditor({
             doc: valueRef.current,
             extensions: [
                 basicSetup,
-                keymap.of([
-                    {
-                        key: 'Mod-Enter',
-                        run: () => {
-                            if (!onSubmitShortcutRef.current) return false;
+                Prec.highest(
+                    keymap.of([
+                        {
+                            key: 'Mod-Enter',
+                            run: () => {
+                                if (!onSubmitShortcutRef.current) return false;
 
-                            onSubmitShortcutRef.current();
-                            return true;
+                                onSubmitShortcutRef.current();
+                                return true;
+                            },
                         },
-                    },
-                    indentWithTab,
-                ]),
+                    ])
+                ),
+
+                keymap.of([indentWithTab]),
                 oneDark,
                 EditorView.lineWrapping,
 
