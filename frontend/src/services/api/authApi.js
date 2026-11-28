@@ -1,4 +1,5 @@
 import api from './axios.js';
+let refreshPromise = null;
 
 export const registerUser = async (userData) => {
     const response = await api.post('/auth/register', userData, {
@@ -15,11 +16,18 @@ export const loginUser = async (credentials) => {
 };
 
 export const refreshAccessToken = async () => {
-    const response = await api.post('/auth/refresh-token', null, {
-        requiresAuth: false
-    });
+    if (!refreshPromise) {
+        refreshPromise = api
+            .post('/auth/refresh-token', null, {
+                requiresAuth: false
+            })
+            .then((response) => response.data)
+            .finally(() => {
+                refreshPromise = null;
+            });
+    }
 
-    return response.data;
+    return refreshPromise;
 };
 
 export const logoutUser = async () => {

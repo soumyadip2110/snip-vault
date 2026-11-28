@@ -3,7 +3,7 @@ import remarkGfm from 'remark-gfm';
 
 function MarkdownField({ value = '', onChange, readOnly = false }) {
     const markdownPreview = (
-        <div className="min-h-40 rounded-md border border-slate-200 bg-slate-50 p-4">
+        <div className="min-h-40 max-h-96 overflow-y-auto rounded-md border border-slate-200 bg-slate-50 p-4">
             {value.trim() ? (
                 <div className="space-y-3 wrap-break-word text-sm leading-6 text-slate-700">
                     <ReactMarkdown

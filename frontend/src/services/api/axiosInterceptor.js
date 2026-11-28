@@ -1,9 +1,7 @@
-import axios from 'axios';
+
 import api from './axios.js';
+import { refreshAccessToken } from './authApi.js';
 
-const baseURL = import.meta.env.VITE_API_BASE_URL;
-
-let refreshPromise = null;
 let interceptorsConfigured = false;
 
 export const configureApiInterceptors = (store, authActions) => {
@@ -42,36 +40,20 @@ export const configureApiInterceptors = (store, authActions) => {
             originalRequest._retry = true;
 
             try {
-                // Reuse an ongoing refresh request if one exists.
-                if (!refreshPromise) {
-                    refreshPromise = axios.post(
-                        `${baseURL}/auth/refresh-token`,
-                        null,
-                        { withCredentials: true }
-                    )
-                        .then((response) => {
-                            const newAccessToken = response.data?.data?.accessToken;
+                // Reuse the shared refresh request from authApi.js.
+                const response = await refreshAccessToken();
 
-                            if (!newAccessToken) {
-                                throw new Error('Access token missing from refresh response');
-                            }
+                const newAccessToken = response?.data?.accessToken;
 
-                            store.dispatch(
-                                authActions.setAccessToken(newAccessToken)
-                            );
-
-                            return newAccessToken;
-                        })
-                        .catch((refreshError) => {
-                            store.dispatch(authActions.clearCredentials());
-                            throw refreshError;
-                        })
-                        .finally(() => {
-                            refreshPromise = null;
-                        });
+                if (!newAccessToken) {
+                    throw new Error(
+                        'Access token missing from refresh response'
+                    );
                 }
 
-                const newAccessToken = await refreshPromise;
+                store.dispatch(
+                    authActions.setAccessToken(newAccessToken)
+                );
 
                 originalRequest.headers = originalRequest.headers || {};
                 originalRequest.headers.Authorization =
@@ -81,6 +63,12 @@ export const configureApiInterceptors = (store, authActions) => {
                 return api(originalRequest);
 
             } catch (refreshError) {
+                // Clear credentials only when the refresh token
+                // is rejected or expired.
+                if (refreshError.response?.status === 401) {
+                    store.dispatch(authActions.clearCredentials());
+                }
+
                 return Promise.reject(refreshError);
             }
         }

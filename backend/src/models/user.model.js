@@ -21,6 +21,12 @@ const userSchema = Schema(
         },
         refreshToken: {
             type: String
+        },
+        previousRefreshToken: {
+            type: String
+        },
+        previousRefreshTokenExpiresAt: {
+            type: Date
         }
     },
     {
@@ -28,7 +34,7 @@ const userSchema = Schema(
     }
 );
 
-userSchema.pre('save', async function() {
+userSchema.pre('save', async function () {
     if (!this.isModified('password')) return;
 
     this.password = await bcrypt.hash(this.password, 10);

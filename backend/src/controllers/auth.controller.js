@@ -7,21 +7,18 @@ import asyncHandler from '../utils/asyncHandler.js';
 import { generateAccessToken, generateRefreshToken } from "../utils/generateTokens.js";
 
 const generateAccessAndRefreshTokens = async (user) => {
-    // try {
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
     user.refreshToken = refreshToken;
+    user.previousRefreshToken = undefined;
+    user.previousRefreshTokenExpiresAt = undefined;
+
     await user.save({ validateBeforeSave: false });
 
     return { accessToken, refreshToken };
+};
 
-    // Let unexpected errors reach the existing error middleware, which can log them properly.
-
-    // } catch (error) {
-    //     throw new ApiError(500, 'Something went wrong while generating access and refresh tokens')
-    // }
-}
 
 const registerUser = asyncHandler(async (req, res) => {
     const { firstName, email, password } = req.body;
@@ -47,7 +44,7 @@ const registerUser = asyncHandler(async (req, res) => {
     });
 
     const createdUser = await User.findById(newUser?._id)
-        .select('-password -refreshToken');
+        .select('-password -refreshToken -previousRefreshToken -previousRefreshTokenExpiresAt');
 
     if (!createdUser) {
         throw new ApiError(500, 'Something went wrong while registering the user');
@@ -80,7 +77,7 @@ const loginUser = asyncHandler(async (req, res) => {
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user);
 
     const loggedInUser = await User.findById(user._id)
-        .select('-password -refreshToken');
+        .select('-password -refreshToken -previousRefreshToken -previousRefreshTokenExpiresAt');
 
     return res
         .status(200)
@@ -98,6 +95,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
 })
 
+
 const refreshAccessToken = asyncHandler(async (req, res) => {
     const incomingRefreshToken = req.cookies?.refreshToken;
 
@@ -106,6 +104,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     }
 
     let decodedToken;
+
     try {
         decodedToken = jwt.verify(
             incomingRefreshToken,
@@ -117,19 +116,89 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
     const user = await User.findById(decodedToken?._id);
 
-    if (!user || user.refreshToken !== incomingRefreshToken) {
+    if (!user || !user.refreshToken) {
         throw new ApiError(401, 'Invalid or expired refresh token');
     }
 
-    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user);
+    const now = new Date();
+    const graceExpiry = new Date(now.getTime() + 10 * 1000);
 
-    const safeUser = user.toObject();
-    delete safeUser.password;
-    delete safeUser.refreshToken;
+    const accessToken = generateAccessToken(user);
+    const newRefreshToken = generateRefreshToken(user);
+
+    // Rotate only when the incoming token is current
+    // and the previous-token grace period has ended.
+    const rotatedUser = await User.findOneAndUpdate(
+        {
+            _id: user._id,
+            refreshToken: incomingRefreshToken,
+            $or: [
+                {
+                    previousRefreshTokenExpiresAt: {
+                        $lte: now
+                    }
+                },
+                {
+                    previousRefreshTokenExpiresAt: {
+                        $exists: false
+                    }
+                },
+                {
+                    previousRefreshTokenExpiresAt: null
+                }
+            ]
+        },
+        {
+            $set: {
+                refreshToken: newRefreshToken,
+                previousRefreshToken: incomingRefreshToken,
+                previousRefreshTokenExpiresAt: graceExpiry
+            }
+        },
+        {
+            new: true
+        }
+    );
+
+    let activeRefreshToken;
+
+    if (rotatedUser) {
+        // A normal rotation succeeded.
+        activeRefreshToken = rotatedUser.refreshToken;
+    } else {
+        // Another request may have rotated this token already,
+        // or the cooldown may still be active.
+        const validSession = await User.findOne({
+            _id: user._id,
+            previousRefreshTokenExpiresAt: {
+                $gt: now
+            },
+            $or: [
+                {
+                    refreshToken: incomingRefreshToken
+                },
+                {
+                    previousRefreshToken: incomingRefreshToken
+                }
+            ]
+        });
+
+        if (!validSession || !validSession.refreshToken) {
+            throw new ApiError(401, 'Invalid or expired refresh token');
+        }
+
+        // Reuse the current token without rotating again.
+        activeRefreshToken = validSession.refreshToken;
+    }
+
+    const safeUser = await User.findById(user._id)
+        .select(
+            '-password -refreshToken -previousRefreshToken -previousRefreshTokenExpiresAt'
+        );
 
     return res
         .status(200)
-        .cookie('refreshToken', refreshToken, cookieOptions)
+        .cookie('refreshToken', activeRefreshToken, cookieOptions)
         .json(
             new ApiResponse(
                 200,
@@ -146,7 +215,11 @@ const logoutUser = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(
         req.user._id,
         {
-            $unset: { refreshToken: 1 }
+            $unset: {
+                refreshToken: 1,
+                previousRefreshToken: 1,
+                previousRefreshTokenExpiresAt: 1
+            }
         }
     );
 
