@@ -15,4 +15,9 @@
     .code-editor .cm-scroller {
         overflow: auto;
     }
+
+    .code-editor-expanded {
+        height: 75vh;
+        max-height: 75vh;
+    }
 }

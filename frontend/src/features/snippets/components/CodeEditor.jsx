@@ -55,6 +55,7 @@ function CodeEditor({
     onSubmitShortcut,
 }) {
     const [copied, setCopied] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
 
     const editorContainerRef = useRef(null);
     const editorViewRef = useRef(null);
@@ -167,6 +168,20 @@ function CodeEditor({
         });
     }, [readOnly]);
 
+    // Apply the correct height when expanding or collapsing.
+    useEffect(() => {
+        const editorContainer = editorContainerRef.current;
+
+        if (!editorContainer) return;
+
+        if (isExpanded) {
+            editorContainer.style.height = '75vh';
+        } else {
+            // Remove the manually assigned height and restore CSS sizing.
+            editorContainer.style.height = '';
+        }
+    }, [isExpanded]);
+
     const handleCopyCode = async () => {
         try {
             await navigator.clipboard.writeText(value);
@@ -183,7 +198,7 @@ function CodeEditor({
 
     return (
         <div className="space-y-2">
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
                 <button
                     type="button"
                     onClick={handleCopyCode}
@@ -191,11 +206,21 @@ function CodeEditor({
                 >
                     {copied ? 'Copied!' : 'Copy Code'}
                 </button>
+
+                <button
+                    type="button"
+                    onClick={() => setIsExpanded((prev) => !prev)}
+                    className="rounded-md bg-slate-700 px-3 py-1.5 text-xs text-white hover:bg-slate-600"
+                >
+                    {isExpanded ? 'Collapse' : 'Expand'}
+                </button>
             </div>
 
             <div
                 ref={editorContainerRef}
-                className="code-editor rounded-md border border-slate-300 text-sm"
+                className={`code-editor rounded-md border border-slate-300 text-sm
+                    ${isExpanded ? 'code-editor-expanded' : ''}
+                `}
             />
         </div>
     );
