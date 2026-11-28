@@ -42,14 +42,20 @@ const errorMiddleware = (err, req, res, next) => {
         );
     }
 
-    // 6. Log unexpected errors
-    console.error('UNEXPECTED ERROR:', {
+    // 6. Log unexpected errors safely based on the environment
+    const errorLog = {
         name: err.name || 'Unknown Error',
         method: req.method,
         path: req.path,
         timestamp: new Date().toISOString(),
-        stack: err.stack
-    });
+    };
+
+    if (process.env.NODE_ENV !== 'production') {
+        errorLog.message = err.message;
+        errorLog.stack = err.stack;
+    }
+
+    console.error('UNEXPECTED ERROR:', errorLog);
 
     // 7. Return a generic response for unexpected errors
     return res.status(500).json(
