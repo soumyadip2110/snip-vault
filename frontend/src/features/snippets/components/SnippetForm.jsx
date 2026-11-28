@@ -3,6 +3,16 @@ import CodeEditor from './CodeEditor.jsx';
 import MarkdownField from './MarkdownField.jsx';
 import { validateSnippet } from '../../../utils/snippetValidation.js';
 
+const supportedLanguages = [
+    'JavaScript',
+    'Python',
+    'HTML',
+    'CSS',
+    'JSON',
+    'C',
+    'C++',
+];
+
 function SnippetForm({
     formData,
     setFormData,
@@ -14,10 +24,32 @@ function SnippetForm({
 }) {
     const [validationErrors, setValidationErrors] = useState({});
     const [hasSubmitted, setHasSubmitted] = useState(false);
+
+    const [isCustomLanguage, setIsCustomLanguage] = useState(
+        () =>
+            Boolean(formData.language) &&
+            !supportedLanguages.some(
+                (language) =>
+                    language.toLowerCase() === formData.language.toLowerCase()
+            )
+    );
+
     const formRef = useRef(null);
+    const skipEmptyResetRef = useRef(false);
     const isEditMode = mode === 'edit';
 
+    const selectedLanguage = supportedLanguages.find(
+        (language) =>
+            language.toLowerCase() === formData.language.toLowerCase()
+    );
+
     useEffect(() => {
+        // Ignore the temporary empty language value when switching to Custom.
+        if (skipEmptyResetRef.current) {
+            skipEmptyResetRef.current = false;
+            return;
+        }
+
         if (
             !formData.title &&
             !formData.description &&
@@ -28,6 +60,7 @@ function SnippetForm({
         ) {
             setValidationErrors({});
             setHasSubmitted(false);
+            setIsCustomLanguage(false);
         }
     }, [formData]);
 
@@ -50,6 +83,22 @@ function SnippetForm({
                 [name]: errors[name],
             }));
         }
+    };
+
+    const handleLanguageSelect = (value) => {
+        if (value === 'Custom') {
+            setIsCustomLanguage(true);
+
+            if (selectedLanguage) {
+                skipEmptyResetRef.current = true;
+                handleChange('language', '');
+            }
+
+            return;
+        }
+
+        setIsCustomLanguage(false);
+        handleChange('language', value);
     };
 
     const handleFormKeyDown = (event) => {
@@ -80,7 +129,6 @@ function SnippetForm({
 
         if (Object.keys(errors).length > 0) return;
 
-        // Clear old validation errors after successful validation.
         setValidationErrors({});
 
         const snippetData = {
@@ -192,15 +240,41 @@ function SnippetForm({
                     Programming Language
                 </label>
 
-                <input
-                    type="text"
-                    value={formData.language}
-                    onChange={(e) => handleChange('language', e.target.value)}
+                <select
+                    value={
+                        selectedLanguage ||
+                        (isCustomLanguage ? 'Custom' : '')
+                    }
+                    onChange={(e) => handleLanguageSelect(e.target.value)}
                     required
-                    maxLength={50}
-                    placeholder="e.g. javascript"
-                    className="w-full rounded-md border border-slate-300 px-3 py-2"
-                />
+                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2"
+                >
+                    <option value="" disabled>
+                        Select a language
+                    </option>
+
+                    {supportedLanguages.map((language) => (
+                        <option key={language} value={language}>
+                            {language}
+                        </option>
+                    ))}
+
+                    <option value="Custom">Custom</option>
+                </select>
+
+                {isCustomLanguage && (
+                    <input
+                        type="text"
+                        value={formData.language}
+                        onChange={(e) =>
+                            handleChange('language', e.target.value)
+                        }
+                        required
+                        maxLength={50}
+                        placeholder="Enter language (e.g. React, Rust, Go)"
+                        className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2"
+                    />
+                )}
 
                 {validationErrors.language && (
                     <p className="mt-1 text-sm text-red-600">

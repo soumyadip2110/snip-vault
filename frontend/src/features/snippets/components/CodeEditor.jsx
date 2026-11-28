@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { basicSetup, EditorView } from 'codemirror';
 import { EditorState, Compartment, Prec } from '@codemirror/state';
 import { javascript } from '@codemirror/lang-javascript';
@@ -17,7 +17,9 @@ const getLanguageExtension = (language) => {
     switch (normalizedLanguage) {
         case 'javascript':
         case 'js':
-            return javascript();
+        case 'react':
+        case 'jsx':
+            return javascript({ jsx: true });
 
         case 'python':
         case 'py':
@@ -52,6 +54,8 @@ function CodeEditor({
     readOnly = false,
     onSubmitShortcut,
 }) {
+    const [copied, setCopied] = useState(false);
+
     const editorContainerRef = useRef(null);
     const editorViewRef = useRef(null);
 
@@ -163,11 +167,37 @@ function CodeEditor({
         });
     }, [readOnly]);
 
+    const handleCopyCode = async () => {
+        try {
+            await navigator.clipboard.writeText(value);
+
+            setCopied(true);
+
+            setTimeout(() => {
+                setCopied(false);
+            }, 1500);
+        } catch (error) {
+            console.error('Failed to copy code:', error);
+        }
+    };
+
     return (
-        <div
-            ref={editorContainerRef}
-            className="code-editor rounded-md border border-slate-300 text-sm"
-        />
+        <div className="space-y-2">
+            <div className="flex justify-end">
+                <button
+                    type="button"
+                    onClick={handleCopyCode}
+                    className="rounded-md bg-slate-700 px-3 py-1.5 text-xs text-white hover:bg-slate-600"
+                >
+                    {copied ? 'Copied!' : 'Copy Code'}
+                </button>
+            </div>
+
+            <div
+                ref={editorContainerRef}
+                className="code-editor rounded-md border border-slate-300 text-sm"
+            />
+        </div>
     );
 }
 

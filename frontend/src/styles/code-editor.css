@@ -4,10 +4,15 @@
         min-height: 220px;
         max-height: 70vh;
         resize: vertical;
-        overflow: hidden;
+        overflow: auto;
+        scrollbar-gutter: stable;
     }
 
     .code-editor .cm-editor {
         height: 100%;
+    }
+
+    .code-editor .cm-scroller {
+        overflow: auto;
     }
 }
