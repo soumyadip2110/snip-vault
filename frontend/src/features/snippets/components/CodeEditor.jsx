@@ -166,7 +166,7 @@ function CodeEditor({
     return (
         <div
             ref={editorContainerRef}
-            className="overflow-hidden rounded-md border border-slate-300 text-sm"
+            className="code-editor rounded-md border border-slate-300 text-sm"
         />
     );
 }

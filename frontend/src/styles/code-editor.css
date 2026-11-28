@@ -1,0 +1,13 @@
+@layer components {
+    .code-editor {
+        height: clamp(220px, 35vh, 420px);
+        min-height: 220px;
+        max-height: 70vh;
+        resize: vertical;
+        overflow: hidden;
+    }
+
+    .code-editor .cm-editor {
+        height: 100%;
+    }
+}
